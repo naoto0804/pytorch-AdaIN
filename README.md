@@ -1,6 +1,7 @@
 # pytorch-AdaIN
 
 This is an unofficial pytorch implementation of a paper, Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization [Huang+, ICCV2017].
+I'm really grateful to the [original implementation](https://github.com/xunhuang1995/AdaIN-style) in Torch by the authors, which is very useful.
 
 ## Requirements
 - Python 3.5+
@@ -23,13 +24,20 @@ python convert_torch.py --model models/decoder.t7
 ```
 
 ### Test
+Use `--content` and `--style` to provide the respective path to the content and style image.
 ```
 CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content input/content/cornell.jpg --style input/style/woman_with_hat_matisse.jpg --gpu
 ```
 
+You can also run the code on directories of content and style images using `--content_dir` and `--style_dir`. It will save every possible combination of content and styles to the output directory.
+```
+CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content_dir input/content --style_dir input/style --gpu
+```
+
 Some other options:
-* `-contentSize`: New (minimum) size for the content image. Keeping the original size if set to 0.
-* `-styleSize`: New (minimum) size for the content image. Keeping the original size if set to 0.
+* `--content_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
+* `--style_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
+* `--alpha`: Adjust the degree of stylization. It should be a value between 0.0 and 1.0 (default)
 
 ### TODO
 - [ ] preserve color
