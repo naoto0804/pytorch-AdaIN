@@ -32,9 +32,9 @@ Some other options:
 * `-styleSize`: New (minimum) size for the content image. Keeping the original size if set to 0.
 
 ### TODO
-- [] preserve color
-- [] spatial control
-- [] style interpolation
+- [ ] preserve color
+- [ ] spatial control
+- [ ] style interpolation
 
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
