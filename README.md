@@ -39,10 +39,10 @@ Some other options:
 * `--style_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
 * `--alpha`: Adjust the degree of stylization. It should be a value between 0.0 and 1.0 (default)
 
-### TODO
-- [ ] preserve color
-- [ ] spatial control
-- [ ] style interpolation
+## TODO
+- [ ] Implement the preserve color option
+- [ ] Implement the spatial control option
+- [ ] Implement the style interpolation option
 
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
