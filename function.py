@@ -16,15 +16,6 @@ def adaptive_instance_normalization(content_feat, style_feat):
     return normalized_feat * style_std + style_mean
 
 
-def style_transfer(vgg, decoder, content, style, alpha=1.0):
-    assert (0.0 <= alpha <= 1.0)
-    content_feat = vgg(content)
-    style_feat = vgg(style)
-    feat = adaptive_instance_normalization(content_feat, style_feat)
-    feat = feat * alpha + content_feat * (1 - alpha)
-    return decoder(feat)
-
-
 def calc_feat_flatten_mean_std(feat):
     # takes 3D feat (C, H, W), return mean and std of array within channels
     assert (feat.size()[0] == 3)
