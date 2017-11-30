@@ -9,6 +9,7 @@ from torchvision.utils import save_image
 
 import net
 from function import style_transfer
+from function import coral
 from PIL import Image
 
 
@@ -53,9 +54,8 @@ parser.add_argument('--output', type=str, default='output',
                     help='Directory to save the output image(s)')
 
 # Advanced options
-# parser.add_argument('--preserve_color', action='store_true',
-#                     help='If specified, \
-#                         preserve color of the content image')
+parser.add_argument('--preserve_color', action='store_true',
+                    help='If specified, preserve color of the content image')
 parser.add_argument('--alpha', type=float, default=1.0,
                     help='The weight that controls the degree of \
                              stylization. Should be between 0 and 1')
@@ -106,13 +106,15 @@ else:
 
 for content_path in content_paths:
     for style_path in style_paths:
-        content = content_transform(Image.open(content_path)).unsqueeze(0)
-        style = style_transform(Image.open(style_path)).unsqueeze(0)
+        content = content_transform(Image.open(content_path))
+        style = style_transform(Image.open(style_path))
+        if args.preserve_color:
+            style = coral(style, content)
         if args.gpu:
             style = style.cuda()
             content = content.cuda()
-        content = Variable(content, volatile=True)
-        style = Variable(style, volatile=True)
+        content = Variable(content.unsqueeze(0), volatile=True)
+        style = Variable(style.unsqueeze(0), volatile=True)
 
         output = style_transfer(vgg, decoder, content, style, args.alpha).data
         if args.gpu:
