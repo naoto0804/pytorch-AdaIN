@@ -32,7 +32,7 @@ Some other options:
 * `-styleSize`: New (minimum) size for the content image. Keeping the original size if set to 0.
 
 ### TODO
-- [ ] preserve color
+- [x] preserve color
 - [ ] spatial control
 - [ ] style interpolation
 
