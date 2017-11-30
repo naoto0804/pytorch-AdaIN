@@ -37,7 +37,8 @@ CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content_dir input/content --style
 Some other options:
 * `--content_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
 * `--style_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
-* `--alpha`: Adjust the degree of stylization. It should be a value between 0.0 and 1.0 (default)
+* `--alpha`: Adjust the degree of stylization. It should be a value between 0.0 and 1.0 (default).
+* `--preserve_color`: Preserve the color of the content image.
 
 ## TODO
 - [x] Implement the preserve color option
