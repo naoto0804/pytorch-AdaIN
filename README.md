@@ -34,6 +34,11 @@ You can also run the code on directories of content and style images using `--co
 CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content_dir input/content --style_dir input/style
 ```
 
+This is an example of mixing four styles by specifying `--style` and `--style_interpolation_weights` option.
+```
+CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content input/content/avril.jpg --style input/style/picasso_self_portrait.jpg,input/style/impronte_d_artista.jpg,input/style/trial.jpg,input/style/antimonocromatismo.jpg --style_interpolation_weights 1,1,1,1 --content_size 512 --style_size 512 --crop
+```
+
 Some other options:
 * `--content_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
 * `--style_size`: New (minimum) size for the content image. Keeping the original size if set to 0.
