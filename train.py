@@ -12,15 +12,13 @@ import net
 from sampler import InfiniteSamplerWrapper
 
 
-def train_transform(size, crop):
-    transform_list = []
-    if size != 0:
-        transform_list.append(transforms.Scale(size))
-    if crop:
-        transform_list.append(transforms.RandomSizedCrop(size))
-    transform_list.append(transforms.ToTensor())
-    transform = transforms.Compose(transform_list)
-    return transform
+def train_transform():
+    transform_list = [
+        transforms.Scale(512),
+        transforms.RandomSizedCrop(256),
+        transforms.ToTensor()
+    ]
+    return transforms.Compose(transform_list)
 
 
 class FlatFolderDataset(data.Dataset):
@@ -52,16 +50,6 @@ parser.add_argument('--style_dir', type=str,
 parser.add_argument('--vgg', type=str, default='models/vgg_normalised.pth')
 parser.add_argument('--decoder', type=str, default='models/decoder.pth')
 
-# preprocessing options
-parser.add_argument('--content_size', type=int, default=512,
-                    help='New (minimum) size for the content image, \
-                    keeping the original size if set to 0')
-parser.add_argument('--style_size', type=int, default=512,
-                    help='New (minimum) size for the style image, \
-                    keeping the original size if set to 0')
-parser.add_argument('--crop', action='store_true',
-                    help='do center crop to create squared image')
-
 # training options
 parser.add_argument('--save_dir', default='./experiments',
                     help='Directory to save the model')
@@ -71,10 +59,7 @@ parser.add_argument('--lr_decay', type=float, default=5e-5)
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--weight_decay', type=float, default=0.0)
 parser.add_argument('--max_iter', type=int, default=160000)
-parser.add_argument('--batch_size', type=int, default=2)
-# parser.add_argument('--target_content_layer', default='relu4_1')
-# parser.add_argument('--target_style_layers',
-#                     default='relu1_1,relu2_1,relu3_1,relu4_1')
+parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--tv_weight', type=float, default=0.0,
                     help='Weight of TV loss')
 parser.add_argument('--style_weight', type=float, default=1e-2)
@@ -101,8 +86,8 @@ vgg = nn.Sequential(*list(vgg.children())[:31])
 network = net.Net(vgg, decoder)
 network.cuda()
 
-content_tf = train_transform(args.content_size, args.crop)
-style_tf = train_transform(args.style_size, args.crop)
+content_tf = train_transform()
+style_tf = train_transform()
 
 content_dataset = FlatFolderDataset(args.content_dir, content_tf)
 style_dataset = FlatFolderDataset(args.style_dir, style_tf)
