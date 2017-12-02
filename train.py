@@ -84,7 +84,7 @@ parser.add_argument('--recon_style', action='store_true',
                                                     reconstruct style images')
 parser.add_argument('--normalize', action='store_true', help='If specified, \
                                 gradients at the loss function are normalized')
-parser.add_argument('--n_threads', type=int, default=2)
+parser.add_argument('--n_threads', type=int, default=0)
 args = parser.parse_args()
 
 # Either --content or --contentDir should be given.

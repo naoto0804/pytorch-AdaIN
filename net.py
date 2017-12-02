@@ -112,9 +112,9 @@ class Net(nn.Module):
 
         def calc_style_loss(a, b):
             N, C = a.data.size()[:2]
-            a = a.view(N, C, -1)
-            b = b.view(N, C, -1)
-            return mse(a.mean(2), b.mean(2)) + mse(a.std(2), b.std(2))
+            size = (N, C, -1)
+            return mse(a.view(*size).mean(2), b.view(*size).mean(2)) + \
+                   mse(a.view(*size).std(2), b.view(*size).std(2))
 
         t = adain(
             self.enc_4(self.enc_3(self.enc_2(self.enc_1(content)))),
