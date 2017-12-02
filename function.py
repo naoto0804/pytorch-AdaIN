@@ -6,14 +6,13 @@ def adaptive_instance_normalization(content_feat, style_feat):
     N, C = size[:2]
     assert (size[:2] == style_feat.data.size()[:2])
 
-    style_feat = style_feat.view(N, C, -1)
-    style_std = style_feat.std(dim=2).view(N, C, 1, 1).expand(size)
-    style_mean = style_feat.mean(dim=2).view(N, C, 1, 1).expand(size)
-    content_feat_3d = content_feat.view(N, C, -1)
-    content_std = content_feat_3d.std(dim=2).view(N, C, 1, 1).expand(size)
-    content_mean = content_feat_3d.mean(dim=2).view(N, C, 1, 1).expand(size)
-    normalized_feat = (content_feat - content_mean) / content_std
-    return normalized_feat * style_std + style_mean
+    style_std = style_feat.view(N, C, -1).std(dim=2).view(N, C, 1, 1)
+    style_mean = style_feat.view(N, C, -1).mean(dim=2).view(N, C, 1, 1)
+    content_std = content_feat.view(N, C, -1).std(dim=2).view(N, C, 1, 1)
+    content_mean = content_feat.view(N, C, -1).mean(dim=2).view(N, C, 1, 1)
+    normalized_feat = (content_feat - content_mean.expand(
+        size)) / content_std.expand(size)
+    return normalized_feat * style_std.expand(size) + style_mean.expand(size)
 
 
 def calc_feat_flatten_mean_std(feat):

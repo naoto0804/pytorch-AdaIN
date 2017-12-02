@@ -49,6 +49,7 @@ Some other options:
 - [x] Implement the preserve color option
 - [x] Implement the style interpolation option
 - [ ] Implement the spatial control option
+- [ ] Implement training
 
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.

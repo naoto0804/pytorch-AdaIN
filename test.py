@@ -15,7 +15,7 @@ from function import adaptive_instance_normalization
 from function import coral
 
 
-def custom_transform(size, crop):
+def test_transform(size, crop):
     transform_list = []
     if size != 0:
         transform_list.append(transforms.Scale(size))
@@ -129,8 +129,8 @@ vgg = nn.Sequential(*list(vgg.children())[:31])
 vgg.cuda()
 decoder.cuda()
 
-content_tf = custom_transform(args.content_size, args.crop)
-style_tf = custom_transform(args.style_size, args.crop)
+content_tf = test_transform(args.content_size, args.crop)
+style_tf = test_transform(args.style_size, args.crop)
 
 for content_path in content_paths:
     if do_interpolation:  # one content image, N style image
