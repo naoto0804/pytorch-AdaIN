@@ -84,6 +84,7 @@ decoder.load_state_dict(torch.load(args.decoder))
 vgg.load_state_dict(torch.load(args.vgg))
 vgg = nn.Sequential(*list(vgg.children())[:31])
 network = net.Net(vgg, decoder)
+network.train()
 network.cuda()
 
 content_tf = train_transform()

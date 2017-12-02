@@ -2,3 +2,4 @@
 *.t7
 output/*
 .idea
+results/*
