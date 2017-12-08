@@ -36,7 +36,8 @@ parser.add_argument('--style_dir', type=str, required=True,
                     help='Directory path to a batch of style images')
 parser.add_argument('--vgg', type=str, default='models/vgg_normalised.pth')
 parser.add_argument('--decoder', type=str, default='models/decoder.pth')
-parser.add_argument('--batch_size', type=int, default=10)
+parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--image_per_content', type=int, default=10)
 parser.add_argument('--save_ext', default='.jpg',
                     help='The extension name of the output image')
 parser.add_argument('--output', type=str, default='output',
@@ -72,22 +73,31 @@ style_tf = test_transform()
 
 N_style = len(style_paths)
 
-for i, content_path in enumerate(content_paths):
-    print(i)
+for cnt, content_path in enumerate(content_paths):
+    print(cnt)
     # one content image, N style image
-    inds = np.random.randint(low=0, high=N_style - 1, size=args.batch_size)
-    style = torch.stack(
-        [style_tf(Image.open(style_paths[i]).convert('RGB')) for i in inds])
-    content = content_tf(Image.open(content_path)) \
-        .unsqueeze(0).expand_as(style)
-    output = style_transfer(vgg, decoder,
-                            Variable(content.cuda(), volatile=True),
-                            Variable(style.cuda(), volatile=True),
-                            args.alpha).data
-    output = output.cpu()
-    for j, ind in enumerate(inds):
-        output_name = '{:s}/{:s}_{:s}{:s}'.format(
-            args.output,
-            splitext(basename(content_path))[0],
-            splitext(basename(style_paths[ind]))[0], args.save_ext)
-        save_image(output[j], output_name)
+    style_inds_cands = np.random.randint(low=0, high=N_style - 1,
+                                         size=args.image_per_content)
+    i = 0
+    while True:
+        inds = style_inds_cands[i * args.batch_size:(i + 1) * args.batch_size]
+        style = torch.stack(
+            [style_tf(Image.open(style_paths[ind]).convert('RGB')) for ind in
+             inds])
+        content = content_tf(Image.open(content_path)) \
+            .unsqueeze(0).expand_as(style)
+        output = style_transfer(vgg, decoder,
+                                Variable(content.cuda(), volatile=True),
+                                Variable(style.cuda(), volatile=True),
+                                args.alpha).data
+        output = output.cpu()
+        for j, ind in enumerate(inds):
+            output_name = '{:s}/{:s}_{:s}{:s}'.format(
+                args.output,
+                splitext(basename(content_path))[0],
+                splitext(basename(style_paths[ind]))[0], args.save_ext)
+            save_image(output[j], output_name)
+        print(cnt, i)
+        i += 1
+        if i * args.batch_size > len(style_inds_cands):
+            break
