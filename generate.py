@@ -13,11 +13,12 @@ from torchvision.utils import save_image
 
 import net
 from function import adaptive_instance_normalization
+import time
 
 
 def test_transform():
     return transforms.Compose(
-        [transforms.Scale((512, 512)), transforms.ToTensor()])
+        [transforms.Scale((256, 256)), transforms.ToTensor()])
 
 
 def style_transfer(vgg, decoder, content, style, alpha=1.0):
@@ -73,8 +74,8 @@ style_tf = test_transform()
 
 N_style = len(style_paths)
 
+total_time = 0
 for cnt, content_path in enumerate(content_paths):
-    print(cnt)
     # one content image, N style image
     style_inds_cands = np.random.randint(low=0, high=N_style - 1,
                                          size=args.image_per_content)
@@ -97,7 +98,9 @@ for cnt, content_path in enumerate(content_paths):
                 splitext(basename(content_path))[0],
                 splitext(basename(style_paths[ind]))[0], args.save_ext)
             save_image(output[j], output_name)
-        print(cnt, i)
         i += 1
         if i * args.batch_size > len(style_inds_cands):
             break
+    if cnt > 0 and cnt % 10 == 0:
+        print(cnt, time.time() - total_time)
+        total_time = time.time()
