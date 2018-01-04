@@ -103,6 +103,21 @@ class Net(nn.Module):
         self.enc_4 = nn.Sequential(*enc_layers[18:31])  # get relu4_1
         self.decoder = decoder
 
+    def encode_with_intermediate(self, input):
+        results = []
+        for i in range(4):
+            func = getattr(self, 'enc_{:d}'.format(i + 1))
+            if i == 0:
+                results.append(func(input))
+            else:
+                results.append(func(results[-1]))
+        return results
+
+    def encode(self, input):
+        for i in range(4):
+            input = getattr(self, 'enc_{:d}'.format(i + 1))(input)
+        return input
+
     def forward(self, content, style):
         def mse(a, b):
             assert (a.data.size() == b.data.size())
@@ -116,26 +131,15 @@ class Net(nn.Module):
             return mse(a.view(*size).mean(2), b.view(*size).mean(2)) + \
                    mse(a.view(*size).std(2), b.view(*size).std(2))
 
-        t = adain(
-            self.enc_4(self.enc_3(self.enc_2(self.enc_1(content)))),
-            self.enc_4(self.enc_3(self.enc_2(self.enc_1(style))))
-        )
-        g_t = self.decoder(t)
+        style_feats = self.encode_with_intermediate(style)
+        t = adain(self.encode(content), style_feats[-1])
 
-        loss_c = mse(self.enc_4(self.enc_3(self.enc_2(self.enc_1(g_t)))), t)
+        g_t = self.decoder(Variable(t.data))
+        g_t_feats = self.encode_with_intermediate(g_t)
 
-        f1_g_t = self.enc_1(g_t)
-        f1_s = self.enc_1(style)
-        loss_s = calc_style_loss(f1_g_t, f1_s)
-
-        f2_g_t = self.enc_2(f1_g_t)
-        f2_s = self.enc_2(f1_s)
-        loss_s += calc_style_loss(f2_g_t, f2_s)
-
-        f3_g_t = self.enc_3(f2_g_t)
-        f3_s = self.enc_3(f2_s)
-        loss_s += calc_style_loss(f3_g_t, f3_s)
-
-        loss_s += calc_style_loss(self.enc_4(f3_g_t), self.enc_4(f3_s))
+        loss_c = mse(g_t_feats[-1], t)
+        loss_s = calc_style_loss(g_t_feats[0], style_feats[0])
+        for i in range(1, 4):
+            loss_s += calc_style_loss(g_t_feats[i], style_feats[i])
 
         return loss_c, loss_s

@@ -1,14 +1,17 @@
 import torch
 
 
-def adaptive_instance_normalization(content_feat, style_feat):
+def adaptive_instance_normalization(content_feat, style_feat, eps=1e-5):
+    # eps is a small value added to the variance to avoid divide-by-zero.
     size = content_feat.data.size()
     N, C = size[:2]
     assert (size[:2] == style_feat.data.size()[:2])
 
     style_std = style_feat.view(N, C, -1).std(dim=2).view(N, C, 1, 1)
     style_mean = style_feat.view(N, C, -1).mean(dim=2).view(N, C, 1, 1)
-    content_std = content_feat.view(N, C, -1).std(dim=2).view(N, C, 1, 1)
+
+    content_var = content_feat.view(N, C, -1).var(dim=2) + eps
+    content_std = content_var.sqrt().view(N, C, 1, 1)
     content_mean = content_feat.view(N, C, -1).mean(dim=2).view(N, C, 1, 1)
     normalized_feat = (content_feat - content_mean.expand(
         size)) / content_std.expand(size)
