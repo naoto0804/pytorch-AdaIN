@@ -131,15 +131,15 @@ class Net(nn.Module):
             return mse(a.view(*size).mean(2), b.view(*size).mean(2)) + \
                    mse(a.view(*size).std(2), b.view(*size).std(2))
 
-        style_feat = self.encode_with_intermediate(style)
-        t = adain(self.encode(content), style_feat[-1])
+        style_feats = self.encode_with_intermediate(style)
+        t = adain(self.encode(content), style_feats[-1])
 
         g_t = self.decoder(Variable(t.data))
-        g_t_feat = self.encode_with_intermediate(g_t)
+        g_t_feats = self.encode_with_intermediate(g_t)
 
-        loss_c = mse(g_t_feat[-1], t)
-        loss_s = calc_style_loss(g_t_feat[0], style_feat[0])
+        loss_c = mse(g_t_feats[-1], t)
+        loss_s = calc_style_loss(g_t_feats[0], style_feats[0])
         for i in range(1, 4):
-            loss_s += calc_style_loss(g_t_feat[i], style_feat[i])
+            loss_s += calc_style_loss(g_t_feats[i], style_feats[i])
 
         return loss_c, loss_s

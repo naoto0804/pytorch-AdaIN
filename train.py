@@ -1,22 +1,29 @@
 import argparse
-
 import os
+
+import tensorflow as tf
 import torch
+import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
 from PIL import Image
 from torch.autograd import Variable
 from torchvision import transforms
+from tqdm import tqdm
 
 import net
+from logger import Logger
 from sampler import InfiniteSamplerWrapper
-from tqdm import tqdm
+
+do_nothing = tf.constant('placeholder')  # import tf before torch
+cudnn.benchmark = True
+logger = Logger('./logs')
 
 
 def train_transform():
     transform_list = [
         transforms.Resize(size=(512, 512)),
-        transforms.RandomSizedCrop(256),
+        transforms.RandomCrop(256),
         transforms.ToTensor()
     ]
     return transforms.Compose(transform_list)
@@ -78,8 +85,6 @@ vgg = net.vgg
 
 vgg.load_state_dict(torch.load(args.vgg))
 vgg = nn.Sequential(*list(vgg.children())[:31])
-for param in vgg.parameters():
-    param.requires_grad = False
 network = net.Net(vgg, decoder)
 network.train()
 network.cuda()
@@ -107,9 +112,20 @@ for i in tqdm(range(args.max_iter)):
     style_images = Variable(next(style_iter).cuda(), requires_grad=False)
     optimizer.zero_grad()
     loss_c, loss_s = network(content_images, style_images)
-    loss = args.content_weight * loss_c + args.style_weight * loss_s
+    loss_c = args.content_weight * loss_c
+    loss_s = args.style_weight * loss_s
+    loss = loss_c + loss_s
+
     loss.backward()
     optimizer.step()
+
+    info = {
+        'loss_content': loss_c.data.cpu().numpy()[0],
+        'loss_style': loss_s.data.cpu().numpy()[0],
+    }
+
+    for tag, value in info.items():
+        logger.scalar_summary(tag, value, i + 1)
 
     if (i + 1) % 10000 == 0 or (i + 1) == args.max_iter:  # save
         torch.save(
