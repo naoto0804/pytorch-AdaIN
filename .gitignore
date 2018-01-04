@@ -2,3 +2,6 @@
 *.t7
 output/*
 .idea
+experiments/*
+logs/*
+
