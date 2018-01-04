@@ -18,7 +18,7 @@ import time
 
 def test_transform():
     return transforms.Compose(
-        [transforms.Scale((256, 256)), transforms.ToTensor()])
+        [transforms.Scale((512, 512)), transforms.ToTensor()])
 
 
 def style_transfer(vgg, decoder, content, style, alpha=1.0):
