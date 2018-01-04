@@ -2,5 +2,5 @@
 *.t7
 output/*
 .idea
-results/*
+experiments/*
 logs/*
