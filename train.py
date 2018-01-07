@@ -17,7 +17,6 @@ from sampler import InfiniteSamplerWrapper
 
 do_nothing = tf.constant('placeholder')  # import tf before torch
 cudnn.benchmark = True
-logger = Logger('./logs')
 
 
 def train_transform():
@@ -60,6 +59,8 @@ parser.add_argument('--vgg', type=str, default='models/vgg_normalised.pth')
 # training options
 parser.add_argument('--save_dir', default='./experiments',
                     help='Directory to save the model')
+parser.add_argument('--log_dir', default='./logs',
+                    help='Directory to save the log')
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--lr_decay', type=float, default=5e-5)
 parser.add_argument('--max_iter', type=int, default=100000)
@@ -79,6 +80,10 @@ def adjust_learning_rate(optimizer, iteration_count):
 
 if not os.path.exists(args.save_dir):
     os.mkdir(args.save_dir)
+
+if not os.path.exists(args.log_dir):
+    os.mkdir(args.log_dir)
+logger = Logger(args.log_dir)
 
 decoder = net.decoder
 vgg = net.vgg
@@ -129,6 +134,6 @@ for i in tqdm(range(args.max_iter)):
 
     if (i + 1) % 10000 == 0 or (i + 1) == args.max_iter:  # save
         torch.save(
-            {'iter': i + 1, 'state_dict': net.decoder.state_dict()},
+            net.decoder.state_dict(),
             '{:s}/decoder_iter_{:d}.pth.tar'.format(args.save_dir, i + 1)
         )
