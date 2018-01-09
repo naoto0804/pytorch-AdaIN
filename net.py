@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
@@ -102,16 +101,14 @@ class Net(nn.Module):
         self.enc_3 = nn.Sequential(*enc_layers[11:18])  # get relu3_1
         self.enc_4 = nn.Sequential(*enc_layers[18:31])  # get relu4_1
         self.decoder = decoder
+        self.mse_loss = nn.MSELoss()
 
     def encode_with_intermediate(self, input):
-        results = []
+        results = [input]
         for i in range(4):
             func = getattr(self, 'enc_{:d}'.format(i + 1))
-            if i == 0:
-                results.append(func(input))
-            else:
-                results.append(func(results[-1]))
-        return results
+            results.append(func(results[-1]))
+        return results[1:]  # remove input
 
     def encode(self, input):
         for i in range(4):
@@ -119,27 +116,25 @@ class Net(nn.Module):
         return input
 
     def forward(self, content, style):
-        def mse(a, b):
-            assert (a.data.size() == b.data.size())
-            size = a.data.size()
-            return nn.MSELoss()(
-                a - b, Variable(torch.FloatTensor(*size).zero_().cuda()))
+        def mse(input, target):
+            assert (input.data.size() == target.data.size())
+            return nn.MSELoss()(input,
+                                Variable(target.data, requires_grad=False))
 
         def calc_style_loss(a, b):
-            N, C = a.data.size()[:2]
-            size = (N, C, -1)
+            assert (a.data.size() == b.data.size())
+            size = a.data.size()[:2] + (-1,)
             return mse(a.view(*size).mean(2), b.view(*size).mean(2)) + \
                    mse(a.view(*size).std(2), b.view(*size).std(2))
 
         style_feats = self.encode_with_intermediate(style)
         t = adain(self.encode(content), style_feats[-1])
 
-        g_t = self.decoder(Variable(t.data))
+        g_t = self.decoder(Variable(t.data, requires_grad=True))
         g_t_feats = self.encode_with_intermediate(g_t)
 
         loss_c = mse(g_t_feats[-1], t)
         loss_s = calc_style_loss(g_t_feats[0], style_feats[0])
         for i in range(1, 4):
             loss_s += calc_style_loss(g_t_feats[i], style_feats[i])
-
         return loss_c, loss_s
