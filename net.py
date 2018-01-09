@@ -2,6 +2,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 from function import adaptive_instance_normalization as adain
+from function import calc_mean_std
 
 decoder = nn.Sequential(
     nn.ReflectionPad2d((1, 1, 1, 1)),
@@ -121,11 +122,12 @@ class Net(nn.Module):
             return nn.MSELoss()(input,
                                 Variable(target.data, requires_grad=False))
 
-        def calc_style_loss(a, b):
-            assert (a.data.size() == b.data.size())
-            size = a.data.size()[:2] + (-1,)
-            return mse(a.view(*size).mean(2), b.view(*size).mean(2)) + \
-                   mse(a.view(*size).std(2), b.view(*size).std(2))
+        def calc_style_loss(input, target):
+            assert (input.data.size() == target.data.size())
+            assert (target.requires_grad is False)
+            input_mean, input_std = calc_mean_std(input)
+            target_mean, target_std = calc_mean_std(target)
+            return mse(input_mean, target_mean) + mse(input_std, target_std)
 
         style_feats = self.encode_with_intermediate(style)
         t = adain(self.encode(content), style_feats[-1])
