@@ -1,11 +1,11 @@
 import argparse
-
 import os
+from os.path import basename
+from os.path import splitext
+
 import torch
 import torch.nn as nn
 from PIL import Image
-from os.path import basename
-from os.path import splitext
 from torch.autograd import Variable
 from torchvision import transforms
 from torchvision.utils import save_image
@@ -47,6 +47,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0,
 
 parser = argparse.ArgumentParser()
 # Basic options
+parser.add_argument('--gpu', type=int, default=-1)
 parser.add_argument('--content', type=str,
                     help='File path to the content image')
 parser.add_argument('--content_dir', type=str,
@@ -85,6 +86,8 @@ parser.add_argument(
     help='The weight for blending the style of multiple style images')
 
 args = parser.parse_args()
+if args.gpu >= 0:
+    torch.cuda.set_device(args.gpu)
 
 do_interpolation = False
 
