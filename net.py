@@ -116,27 +116,28 @@ class Net(nn.Module):
             input = getattr(self, 'enc_{:d}'.format(i + 1))(input)
         return input
 
+    def calc_content_loss(self, input, target):
+        assert (input.data.size() == target.data.size())
+        assert (target.requires_grad is False)
+        return self.mse_loss(input, target)
+
+    def calc_style_loss(self, input, target):
+        assert (input.data.size() == target.data.size())
+        assert (target.requires_grad is False)
+        input_mean, input_std = calc_mean_std(input)
+        target_mean, target_std = calc_mean_std(target)
+        return self.mse_loss(input_mean, target_mean) + \
+               self.mse_loss(input_std, target_std)
+
     def forward(self, content, style):
-        def mse(input, target):
-            assert (input.data.size() == target.data.size())
-            return nn.MSELoss()(input,
-                                Variable(target.data, requires_grad=False))
-
-        def calc_style_loss(input, target):
-            assert (input.data.size() == target.data.size())
-            assert (target.requires_grad is False)
-            input_mean, input_std = calc_mean_std(input)
-            target_mean, target_std = calc_mean_std(target)
-            return mse(input_mean, target_mean) + mse(input_std, target_std)
-
         style_feats = self.encode_with_intermediate(style)
         t = adain(self.encode(content), style_feats[-1])
 
         g_t = self.decoder(Variable(t.data, requires_grad=True))
         g_t_feats = self.encode_with_intermediate(g_t)
 
-        loss_c = mse(g_t_feats[-1], t)
-        loss_s = calc_style_loss(g_t_feats[0], style_feats[0])
+        loss_c = self.calc_content_loss(g_t_feats[-1], t)
+        loss_s = self.calc_style_loss(g_t_feats[0], style_feats[0])
         for i in range(1, 4):
-            loss_s += calc_style_loss(g_t_feats[i], style_feats[i])
+            loss_s += self.calc_style_loss(g_t_feats[i], style_feats[i])
         return loss_c, loss_s
