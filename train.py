@@ -48,8 +48,16 @@ class FlatFolderDataset(data.Dataset):
         return 'FlatFolderDataset'
 
 
+def adjust_learning_rate(optimizer, iteration_count):
+    """Imitating the original implementation"""
+    lr = args.lr / (1.0 + args.lr_decay * iteration_count)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+
 parser = argparse.ArgumentParser()
 # Basic options
+parser.add_argument('--gpu', type=int, default=-1)
 parser.add_argument('--content_dir', type=str, required=True,
                     help='Directory path to a batch of content images')
 parser.add_argument('--style_dir', type=str, required=True,
@@ -70,13 +78,8 @@ parser.add_argument('--content_weight', type=float, default=1.0)
 parser.add_argument('--n_threads', type=int, default=16)
 args = parser.parse_args()
 
-
-def adjust_learning_rate(optimizer, iteration_count):
-    """Imitating the original implementation"""
-    lr = args.lr / (1.0 + args.lr_decay * iteration_count)
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
+if args.gpu >= 0:
+    torch.cuda.set_device(args.gpu)
 
 if not os.path.exists(args.save_dir):
     os.mkdir(args.save_dir)
