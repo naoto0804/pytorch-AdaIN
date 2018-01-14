@@ -1,21 +1,19 @@
 import argparse
 import os
 
-import tensorflow as tf
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
 from PIL import Image
+from tensorboardX import SummaryWriter
 from torch.autograd import Variable
 from torchvision import transforms
 from tqdm import tqdm
 
 import net
-from logger import Logger
 from sampler import InfiniteSamplerWrapper
 
-do_nothing = tf.constant('placeholder')  # import tf before torch
 cudnn.benchmark = True
 
 
@@ -76,6 +74,7 @@ parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--style_weight', type=float, default=1.0)
 parser.add_argument('--content_weight', type=float, default=1.0)
 parser.add_argument('--n_threads', type=int, default=16)
+parser.add_argument('--save_model_interval', type=int, default=10000)
 args = parser.parse_args()
 
 if args.gpu >= 0:
@@ -86,7 +85,7 @@ if not os.path.exists(args.save_dir):
 
 if not os.path.exists(args.log_dir):
     os.mkdir(args.log_dir)
-logger = Logger(args.log_dir)
+writer = SummaryWriter(log_dir=args.log_dir)
 
 decoder = net.decoder
 vgg = net.vgg
@@ -131,16 +130,12 @@ for i in tqdm(range(args.max_iter)):
     loss.backward()
     optimizer.step()
 
-    info = {
-        'loss_content': loss_c.data.cpu().numpy()[0],
-        'loss_style': loss_s.data.cpu().numpy()[0],
-    }
+    writer.add_scalar('loss_content', loss_c.data.cpu()[0], i + 1)
+    writer.add_scalar('loss_style', loss_s.data.cpu()[0], i + 1)
 
-    for tag, value in info.items():
-        logger.scalar_summary(tag, value, i + 1)
-
-    if (i + 1) % 10000 == 0 or (i + 1) == args.max_iter:  # save
+    if (i + 1) % args.save_model_interval == 0 or (i + 1) == args.max_iter:
         torch.save(
             net.decoder.state_dict(),
             '{:s}/decoder_iter_{:d}.pth.tar'.format(args.save_dir, i + 1)
         )
+writer.close()

@@ -7,6 +7,7 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 - Python 3.5+
 - PyTorch
 - TorchVision
+- TensorboardX
 
 ## Usage
 
@@ -47,7 +48,7 @@ Some other options:
 
 
 ### Train
-Please install tensorflow, tqdm, and scipy for progress bar and logging
+Please install tensorboardX, tqdm, and scipy for progress bar and logging
 
 Use `--content_dir` and `--style_dir` to provide the respective directory to the content and style images.
 ```
