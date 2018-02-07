@@ -20,8 +20,8 @@ bash models/download_models.sh
 ### Convert models
 This command will convert the models for Torch to the models for PyTorch.
 ```
-python convert_torch.py --model models/vgg_normalised.t7
-python convert_torch.py --model models/decoder.t7
+python torch_to_pytorch.py --model models/vgg_normalised.t7
+python torch_to_pytorch.py --model models/decoder.t7
 ```
 
 ### Test
