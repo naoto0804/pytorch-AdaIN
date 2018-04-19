@@ -57,11 +57,6 @@ python train.py --gpu <gpu_id> --content_dir <content_dir> --style_dir <style_di
 
 For more details and parameters, please refer to --help option.
 
-## TODO
-- [x] Implement the preserve color option
-- [x] Implement the style interpolation option
-- [x] Implement training
-
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
 - [2]: [Original implementation in Torch](https://github.com/xunhuang1995/AdaIN-style)
