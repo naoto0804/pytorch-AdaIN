@@ -5,7 +5,7 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 
 ## Requirements
 - Python 3.5+
-- PyTorch
+- PyTorch 0.3
 - TorchVision
 - TensorboardX
 
