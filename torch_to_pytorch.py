@@ -125,7 +125,7 @@ def lua_recursive_model(module, seq):
         elif name == 'SpatialCrossMapLRN':
             lrn = torch.legacy.nn.SpatialCrossMapLRN(m.size, m.alpha, m.beta,
                                                      m.k)
-            n = Lambda(lambda x, lrn=lrn: Variable(lrn.forward(x.data)))
+            n = Lambda(lambda x, lrn=lrn: lrn.forward(x))
             add_submodule(seq, n)
         elif name == 'Sequential':
             n = nn.Sequential()
@@ -213,7 +213,7 @@ def lua_recursive_source(module):
             lrn = 'torch.legacy.nn.SpatialCrossMapLRN(*{})'.format(
                 (m.size, m.alpha, m.beta, m.k))
             s += [
-                'Lambda(lambda x,lrn={}: Variable(lrn.forward(x.data)))'.format(
+                'Lambda(lambda x,lrn={}: Variable(lrn.forward(x)))'.format(
                     lrn)]
 
         elif name == 'Sequential':

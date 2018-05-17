@@ -5,7 +5,7 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 
 ## Requirements
 - Python 3.5+
-- PyTorch 0.3
+- PyTorch 0.4+
 - TorchVision
 - TensorboardX
 
@@ -27,17 +27,17 @@ python torch_to_pytorch.py --model models/decoder.t7
 ### Test
 Use `--content` and `--style` to provide the respective path to the content and style image.
 ```
-python test.py --gpu <gpu_id> --content input/content/cornell.jpg --style input/style/woman_with_hat_matisse.jpg
+CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content input/content/cornell.jpg --style input/style/woman_with_hat_matisse.jpg
 ```
 
 You can also run the code on directories of content and style images using `--content_dir` and `--style_dir`. It will save every possible combination of content and styles to the output directory.
 ```
-python test.py --gpu <gpu_id> --content_dir input/content --style_dir input/style
+CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content_dir input/content --style_dir input/style
 ```
 
 This is an example of mixing four styles by specifying `--style` and `--style_interpolation_weights` option.
 ```
-python test.py --gpu <gpu_id> --content input/content/avril.jpg --style input/style/picasso_self_portrait.jpg,input/style/impronte_d_artista.jpg,input/style/trial.jpg,input/style/antimonocromatismo.jpg --style_interpolation_weights 1,1,1,1 --content_size 512 --style_size 512 --crop
+CUDA_VISIBLE_DEVICES=<gpu_id> python test.py --content input/content/avril.jpg --style input/style/picasso_self_portrait.jpg,input/style/impronte_d_artista.jpg,input/style/trial.jpg,input/style/antimonocromatismo.jpg --style_interpolation_weights 1,1,1,1 --content_size 512 --style_size 512 --crop
 ```
 
 Some other options:

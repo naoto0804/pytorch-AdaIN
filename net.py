@@ -1,5 +1,4 @@
 import torch.nn as nn
-from torch.autograd import Variable
 
 from function import adaptive_instance_normalization as adain
 from function import calc_mean_std
@@ -8,7 +7,7 @@ decoder = nn.Sequential(
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(512, 256, (3, 3)),
     nn.ReLU(),
-    nn.UpsamplingNearest2d(scale_factor=2),
+    nn.Upsample(scale_factor=2, mode='nearest'),
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(256, 256, (3, 3)),
     nn.ReLU(),
@@ -21,14 +20,14 @@ decoder = nn.Sequential(
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(256, 128, (3, 3)),
     nn.ReLU(),
-    nn.UpsamplingNearest2d(scale_factor=2),
+    nn.Upsample(scale_factor=2, mode='nearest'),
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(128, 128, (3, 3)),
     nn.ReLU(),
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(128, 64, (3, 3)),
     nn.ReLU(),
-    nn.UpsamplingNearest2d(scale_factor=2),
+    nn.Upsample(scale_factor=2, mode='nearest'),
     nn.ReflectionPad2d((1, 1, 1, 1)),
     nn.Conv2d(64, 64, (3, 3)),
     nn.ReLU(),
@@ -104,6 +103,11 @@ class Net(nn.Module):
         self.decoder = decoder
         self.mse_loss = nn.MSELoss()
 
+        # fix the encoder
+        for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
+            for param in getattr(self, name).parameters():
+                param.requires_grad = False
+
     # extract relu1_1, relu2_1, relu3_1, relu4_1 from input image
     def encode_with_intermediate(self, input):
         results = [input]
@@ -119,12 +123,12 @@ class Net(nn.Module):
         return input
 
     def calc_content_loss(self, input, target):
-        assert (input.data.size() == target.data.size())
+        assert (input.size() == target.size())
         assert (target.requires_grad is False)
         return self.mse_loss(input, target)
 
     def calc_style_loss(self, input, target):
-        assert (input.data.size() == target.data.size())
+        assert (input.size() == target.size())
         assert (target.requires_grad is False)
         input_mean, input_std = calc_mean_std(input)
         target_mean, target_std = calc_mean_std(target)
@@ -138,7 +142,7 @@ class Net(nn.Module):
         t = adain(content_feat, style_feats[-1])
         t = alpha * t + (1 - alpha) * content_feat
 
-        g_t = self.decoder(Variable(t.data, requires_grad=True))
+        g_t = self.decoder(t)
         g_t_feats = self.encode_with_intermediate(g_t)
 
         loss_c = self.calc_content_loss(g_t_feats[-1], t)

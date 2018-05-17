@@ -1,13 +1,12 @@
 import argparse
 import os
-
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
 from PIL import Image
+from PIL import ImageFile
 from tensorboardX import SummaryWriter
-from torch.autograd import Variable
 from torchvision import transforms
 from tqdm import tqdm
 
@@ -15,6 +14,8 @@ import net
 from sampler import InfiniteSamplerWrapper
 
 cudnn.benchmark = True
+Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombError
+ImageFile.LOAD_TRUNCATED_IMAGES = True  # Disable OSError: image file is truncated
 
 
 def train_transform():
@@ -55,7 +56,6 @@ def adjust_learning_rate(optimizer, iteration_count):
 
 parser = argparse.ArgumentParser()
 # Basic options
-parser.add_argument('--gpu', type=int, default=-1)
 parser.add_argument('--content_dir', type=str, required=True,
                     help='Directory path to a batch of content images')
 parser.add_argument('--style_dir', type=str, required=True,
@@ -77,8 +77,7 @@ parser.add_argument('--n_threads', type=int, default=16)
 parser.add_argument('--save_model_interval', type=int, default=10000)
 args = parser.parse_args()
 
-if args.gpu >= 0:
-    torch.cuda.set_device(args.gpu)
+device = torch.device('cuda')
 
 if not os.path.exists(args.save_dir):
     os.mkdir(args.save_dir)
@@ -93,12 +92,8 @@ vgg = net.vgg
 vgg.load_state_dict(torch.load(args.vgg))
 vgg = nn.Sequential(*list(vgg.children())[:31])
 network = net.Net(vgg, decoder)
-
-for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
-    for param in getattr(network, name).parameters():
-        param.requires_grad = False
 network.train()
-network.cuda()
+network.to(device)
 
 content_tf = train_transform()
 style_tf = train_transform()
@@ -119,8 +114,8 @@ optimizer = torch.optim.Adam(network.decoder.parameters(), lr=args.lr)
 
 for i in tqdm(range(args.max_iter)):
     adjust_learning_rate(optimizer, iteration_count=i)
-    content_images = Variable(next(content_iter).cuda())
-    style_images = Variable(next(style_iter).cuda())
+    content_images = next(content_iter).to(device)
+    style_images = next(style_iter).to(device)
     loss_c, loss_s = network(content_images, style_images)
     loss_c = args.content_weight * loss_c
     loss_s = args.style_weight * loss_s
@@ -130,12 +125,14 @@ for i in tqdm(range(args.max_iter)):
     loss.backward()
     optimizer.step()
 
-    writer.add_scalar('loss_content', loss_c.data.cpu()[0], i + 1)
-    writer.add_scalar('loss_style', loss_s.data.cpu()[0], i + 1)
+    writer.add_scalar('loss_content', loss_c.item(), i + 1)
+    writer.add_scalar('loss_style', loss_s.item(), i + 1)
 
     if (i + 1) % args.save_model_interval == 0 or (i + 1) == args.max_iter:
-        torch.save(
-            net.decoder.state_dict(),
-            '{:s}/decoder_iter_{:d}.pth.tar'.format(args.save_dir, i + 1)
-        )
+        state_dict = net.decoder.state_dict()
+        for key in state_dict.keys():
+            state_dict[key] = state_dict[key].to(torch.device('cpu'))
+        torch.save(state_dict,
+                   '{:s}/decoder_iter_{:d}.pth.tar'.format(args.save_dir,
+                                                           i + 1))
 writer.close()
