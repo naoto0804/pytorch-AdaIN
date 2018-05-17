@@ -47,6 +47,7 @@ parser.add_argument('--alpha', type=float, default=1.0,
                     help='The weight that controls the degree of \
                              stylization. Should be between 0 and 1')
 args = parser.parse_args()
+print(args)
 
 content_paths = [os.path.join(args.content_dir, f) for f in
                  os.listdir(args.content_dir)]

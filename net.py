@@ -131,9 +131,12 @@ class Net(nn.Module):
         return self.mse_loss(input_mean, target_mean) + \
                self.mse_loss(input_std, target_std)
 
-    def forward(self, content, style):
+    def forward(self, content, style, alpha=1.0):
+        assert 0 <= alpha <= 1
         style_feats = self.encode_with_intermediate(style)
-        t = adain(self.encode(content), style_feats[-1])
+        content_feat = self.encode(content)
+        t = adain(content_feat, style_feats[-1])
+        t = alpha * t + (1 - alpha) * content_feat
 
         g_t = self.decoder(Variable(t.data, requires_grad=True))
         g_t_feats = self.encode_with_intermediate(g_t)
