@@ -5,7 +5,7 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 
 ## Requirements
 - Python 3.5+
-- PyTorch
+- PyTorch 0.3
 - TorchVision
 - TensorboardX
 
@@ -20,8 +20,8 @@ bash models/download_models.sh
 ### Convert models
 This command will convert the models for Torch to the models for PyTorch.
 ```
-python convert_torch.py --model models/vgg_normalised.t7
-python convert_torch.py --model models/decoder.t7
+python torch_to_pytorch.py --model models/vgg_normalised.t7
+python torch_to_pytorch.py --model models/decoder.t7
 ```
 
 ### Test
@@ -56,11 +56,6 @@ python train.py --gpu <gpu_id> --content_dir <content_dir> --style_dir <style_di
 ```
 
 For more details and parameters, please refer to --help option.
-
-## TODO
-- [x] Implement the preserve color option
-- [x] Implement the style interpolation option
-- [x] Implement training
 
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
