@@ -7,6 +7,10 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 - Python 3.5+
 - PyTorch 0.4+
 - TorchVision
+- Pillow
+
+(optional, for training)
+- tqdm
 - TensorboardX
 
 ## Usage
@@ -48,8 +52,6 @@ Some other options:
 
 
 ### Train
-Please install tensorboardX, tqdm, and scipy for progress bar and logging
-
 Use `--content_dir` and `--style_dir` to provide the respective directory to the content and style images.
 ```
 python train.py --gpu <gpu_id> --content_dir <content_dir> --style_dir <style_dir>
