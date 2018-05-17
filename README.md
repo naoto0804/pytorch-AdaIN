@@ -54,7 +54,7 @@ Some other options:
 ### Train
 Use `--content_dir` and `--style_dir` to provide the respective directory to the content and style images.
 ```
-python train.py --gpu <gpu_id> --content_dir <content_dir> --style_dir <style_dir>
+CUDA_VISIBLE_DEVICES=<gpu_id> python train.py --content_dir <content_dir> --style_dir <style_dir>
 ```
 
 For more details and parameters, please refer to --help option.
