@@ -61,6 +61,8 @@ CUDA_VISIBLE_DEVICES=<gpu_id> python train.py --content_dir <content_dir> --styl
 
 For more details and parameters, please refer to --help option.
 
+I share the model trained by this code [here](https://drive.google.com/open?id=18wgz9-7sofBocdr2OdRSK2OK19BaQrYA)
+
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
 - [2]: [Original implementation in Torch](https://github.com/xunhuang1995/AdaIN-style)
