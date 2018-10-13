@@ -31,7 +31,7 @@ def style_transfer(vgg, decoder, content, style, alpha=1.0,
     style_f = vgg(style)
     if interpolation_weights:
         _, C, H, W = content_f.size()
-        feat = torch.FloatTensor(1, C, H, W).zero_().to(torch.device('cuda'))
+        feat = torch.FloatTensor(1, C, H, W).zero_().to(device)
         base_feat = adaptive_instance_normalization(content_f, style_f)
         for i, w in enumerate(interpolation_weights):
             feat = feat + w * base_feat[i:i + 1]
@@ -85,7 +85,7 @@ args = parser.parse_args()
 
 do_interpolation = False
 
-device = torch.device('cuda')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Either --content or --contentDir should be given.
 assert (args.content or args.content_dir)
