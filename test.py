@@ -139,9 +139,9 @@ for content_path in content_paths:
             output = style_transfer(vgg, decoder, content, style,
                                     args.alpha, interpolation_weights)
         output = output.cpu()
-        output_name = '{:s}/{:s}_interpolation{:s}'.format(
-            args.output, content_path.stem, args.save_ext)
-        save_image(output, output_name)
+        output_name = output_dir / '{:s}_interpolation{:s}'.format(
+            content_path.stem, args.save_ext)
+        save_image(output, str(output_name))
 
     else:  # process one content and one style
         for style_path in style_paths:
@@ -156,6 +156,6 @@ for content_path in content_paths:
                                         args.alpha)
             output = output.cpu()
 
-            output_name = '{:s}/{:s}_stylized_{:s}{:s}'.format(
-                args.output, content_path.stem, style_path.stem, args.save_ext)
-            save_image(output, output_name)
+            output_name = output_dir / '{:s}_stylized_{:s}{:s}'.format(
+                content_path.stem, style_path.stem, args.save_ext)
+            save_image(output, str(output_name))
