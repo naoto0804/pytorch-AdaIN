@@ -4,6 +4,7 @@ import argparse
 from functools import reduce
 
 import torch
+assert torch.__version__.split('.')[0] == '0', 'Only working on PyTorch 0.x.x'
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.serialization import load_lua

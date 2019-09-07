@@ -1,11 +1,11 @@
 import argparse
-import os
+from pathlib import Path
+
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
-from PIL import Image
-from PIL import ImageFile
+from PIL import Image, ImageFile
 from tensorboardX import SummaryWriter
 from torchvision import transforms
 from tqdm import tqdm
@@ -15,7 +15,8 @@ from sampler import InfiniteSamplerWrapper
 
 cudnn.benchmark = True
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombError
-ImageFile.LOAD_TRUNCATED_IMAGES = True  # Disable OSError: image file is truncated
+# Disable OSError: image file is truncated
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def train_transform():
@@ -31,12 +32,12 @@ class FlatFolderDataset(data.Dataset):
     def __init__(self, root, transform):
         super(FlatFolderDataset, self).__init__()
         self.root = root
-        self.paths = os.listdir(self.root)
+        self.paths = list(Path(self.root).glob('*'))
         self.transform = transform
 
     def __getitem__(self, index):
         path = self.paths[index]
-        img = Image.open(os.path.join(self.root, path)).convert('RGB')
+        img = Image.open(str(path)).convert('RGB')
         img = self.transform(img)
         return img
 
@@ -78,13 +79,11 @@ parser.add_argument('--save_model_interval', type=int, default=10000)
 args = parser.parse_args()
 
 device = torch.device('cuda')
-
-if not os.path.exists(args.save_dir):
-    os.mkdir(args.save_dir)
-
-if not os.path.exists(args.log_dir):
-    os.mkdir(args.log_dir)
-writer = SummaryWriter(log_dir=args.log_dir)
+save_dir = Path(args.save_dir)
+save_dir.mkdir(exist_ok=True, parents=True)
+log_dir = Path(args.log_dir)
+log_dir.mkdir(exist_ok=True, parents=True)
+writer = SummaryWriter(log_dir=str(log_dir))
 
 decoder = net.decoder
 vgg = net.vgg
@@ -132,7 +131,6 @@ for i in tqdm(range(args.max_iter)):
         state_dict = net.decoder.state_dict()
         for key in state_dict.keys():
             state_dict[key] = state_dict[key].to(torch.device('cpu'))
-        torch.save(state_dict,
-                   '{:s}/decoder_iter_{:d}.pth.tar'.format(args.save_dir,
-                                                           i + 1))
+        torch.save(state_dict, save_dir /
+                   'decoder_iter_{:d}.pth.tar'.format(i + 1))
 writer.close()

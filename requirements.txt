@@ -1,0 +1,9 @@
+numpy==1.17.2
+Pillow==6.1.0
+pkg-resources==0.0.0
+protobuf==3.9.1
+six==1.12.0
+tensorboardX==1.8
+torch==1.2.0
+torchvision==0.4.0
+tqdm==4.35.0

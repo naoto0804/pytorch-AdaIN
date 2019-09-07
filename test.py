@@ -1,16 +1,14 @@
 import argparse
-import os
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 from PIL import Image
-from os.path import basename
-from os.path import splitext
 from torchvision import transforms
 from torchvision.utils import save_image
 
 import net
-from function import adaptive_instance_normalization
-from function import coral
+from function import adaptive_instance_normalization, coral
 
 
 def test_transform(size, crop):
@@ -87,21 +85,23 @@ do_interpolation = False
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+output_dir = Path(args.output)
+output_dir.mkdir(exist_ok=True, parents=True)
+
 # Either --content or --contentDir should be given.
 assert (args.content or args.content_dir)
+if args.content:
+    content_paths = [Path(args.content)]
+else:
+    content_dir = Path(args.content_dir)
+    content_paths = [f for f in content_dir.glob('*')]
+
 # Either --style or --styleDir should be given.
 assert (args.style or args.style_dir)
-
-if args.content:
-    content_paths = [args.content]
-else:
-    content_paths = [os.path.join(args.content_dir, f) for f in
-                     os.listdir(args.content_dir)]
-
 if args.style:
     style_paths = args.style.split(',')
     if len(style_paths) == 1:
-        style_paths = [args.style]
+        style_paths = [Path(args.style)]
     else:
         do_interpolation = True
         assert (args.style_interpolation_weights != ''), \
@@ -109,11 +109,8 @@ if args.style:
         weights = [int(i) for i in args.style_interpolation_weights.split(',')]
         interpolation_weights = [w / sum(weights) for w in weights]
 else:
-    style_paths = [os.path.join(args.style_dir, f) for f in
-                   os.listdir(args.style_dir)]
-
-if not os.path.exists(args.output):
-    os.mkdir(args.output)
+    style_dir = Path(args.style_dir)
+    style_paths = [f for f in style_dir.glob('*')]
 
 decoder = net.decoder
 vgg = net.vgg
@@ -133,8 +130,8 @@ style_tf = test_transform(args.style_size, args.crop)
 
 for content_path in content_paths:
     if do_interpolation:  # one content image, N style image
-        style = torch.stack([style_tf(Image.open(p)) for p in style_paths])
-        content = content_tf(Image.open(content_path)) \
+        style = torch.stack([style_tf(Image.open(str(p))) for p in style_paths])
+        content = content_tf(Image.open(str(content_path))) \
             .unsqueeze(0).expand_as(style)
         style = style.to(device)
         content = content.to(device)
@@ -142,14 +139,14 @@ for content_path in content_paths:
             output = style_transfer(vgg, decoder, content, style,
                                     args.alpha, interpolation_weights)
         output = output.cpu()
-        output_name = '{:s}/{:s}_interpolation{:s}'.format(
-            args.output, splitext(basename(content_path))[0], args.save_ext)
-        save_image(output, output_name)
+        output_name = output_dir / '{:s}_interpolation{:s}'.format(
+            content_path.stem, args.save_ext)
+        save_image(output, str(output_name))
 
     else:  # process one content and one style
         for style_path in style_paths:
-            content = content_tf(Image.open(content_path))
-            style = style_tf(Image.open(style_path))
+            content = content_tf(Image.open(str(content_path)))
+            style = style_tf(Image.open(str(style_path)))
             if args.preserve_color:
                 style = coral(style, content)
             style = style.to(device).unsqueeze(0)
@@ -159,8 +156,6 @@ for content_path in content_paths:
                                         args.alpha)
             output = output.cpu()
 
-            output_name = '{:s}/{:s}_stylized_{:s}{:s}'.format(
-                args.output, splitext(basename(content_path))[0],
-                splitext(basename(style_path))[0], args.save_ext
-            )
-            save_image(output, output_name)
+            output_name = output_dir / '{:s}_stylized_{:s}{:s}'.format(
+                content_path.stem, style_path.stem, args.save_ext)
+            save_image(output, str(output_name))

@@ -6,6 +6,8 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 ![Results](results.png)
 
 ## Requirements
+Please install requirements by `pip install -r requirements.txt`
+
 - Python 3.5+
 - PyTorch 0.4+
 - TorchVision
@@ -18,17 +20,7 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 ## Usage
 
 ### Download models
-This command will download a pre-trained decoder as well as a modified VGG-19 network.
-```
-bash models/download_models.sh
-```
-
-### Convert models
-This command will convert the models for Torch to the models for PyTorch.
-```
-python torch_to_pytorch.py --model models/vgg_normalised.t7
-python torch_to_pytorch.py --model models/decoder.t7
-```
+Download [vgg_normalized.pth](https://drive.google.com/open?id=108uza-dsmwvbW2zv-G73jtVcMU_2Nb7Y)/[decoder.pth](https://drive.google.com/open?id=1w9r1NoYnn7tql1VYG3qDUzkbIks24RBQ) and put them under `models/`.
 
 ### Test
 Use `--content` and `--style` to provide the respective path to the content and style image.
