@@ -6,6 +6,8 @@ I'm really grateful to the [original implementation](https://github.com/xunhuang
 ![Results](results.png)
 
 ## Requirements
+Please install requirements by `pip install -r requirements.txt`
+
 - Python 3.5+
 - PyTorch 0.4+
 - TorchVision

@@ -1,12 +1,11 @@
 import argparse
-import os
+from pathlib import Path
+
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
-from pathlib import Path
-from PIL import Image
-from PIL import ImageFile
+from PIL import Image, ImageFile
 from tensorboardX import SummaryWriter
 from torchvision import transforms
 from tqdm import tqdm

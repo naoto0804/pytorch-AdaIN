@@ -1,14 +1,14 @@
 import argparse
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-from pathlib import Path
 from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
 
 import net
-from function import adaptive_instance_normalization
-from function import coral
+from function import adaptive_instance_normalization, coral
 
 
 def test_transform(size, crop):
