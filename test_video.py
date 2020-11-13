@@ -81,19 +81,17 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-do_interpolation = False
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 output_dir = Path(args.output)
-output_dir.mkdir(exist_ok=True, parents=True)
+output_dir.mkdir(exist_ok = True, parents = True)
 
-# Either --content or --contentDir should be given.
+# --content_video should be given.
 assert (args.content_video)
 if args.content_video:
     content_path = Path(args.content_video)
 
-# Either --style or --styleDir should be given.
+# --style_path should be given
 assert (args.style_path)
 if args.style_path:
     style_path = Path(args.style_path)
@@ -114,17 +112,17 @@ decoder.to(device)
 content_tf = test_transform(args.content_size, args.crop)
 style_tf = test_transform(args.style_size, args.crop)
         
-#get video fps&video size
+#get video fps & video size
 content_video = cv2.VideoCapture(args.content_video)
 fps = int(content_video.get(cv2.CAP_PROP_FPS))
 content_video_length = int(content_video.get(cv2.CAP_PROP_FRAME_COUNT))
 output_width = int(content_video.get(cv2.CAP_PROP_FRAME_WIDTH))
 output_height = int(content_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-assert fps!=0, 'Fps is zero, Please enter proper video path'
+assert fps != 0, 'Fps is zero, Please enter proper video path'
 
 pbar = tqdm(total = content_video_length)
-if(str(style_path).endswith('.mp4') or str(style_path).endswith('.mpg') or str(style_path).endswith('.avi')):
+if style_path.suffix in [".mp4", ".mpg", ".avi"]:
 
     style_video = cv2.VideoCapture(args.style_path)
     style_video_length = int(style_video.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -135,7 +133,6 @@ if(str(style_path).endswith('.mp4') or str(style_path).endswith('.mpg') or str(s
                 content_path.stem, style_path.stem, args.save_ext)
     writer = imageio.get_writer(output_video_path, mode='I', fps=fps)
     
-
     while(True):
         ret, content_img = content_video.read()
 
@@ -166,9 +163,8 @@ if(str(style_path).endswith('.mp4') or str(style_path).endswith('.mpg') or str(s
     
     style_video.release()
     content_video.release()
-    print('Video saved! Please check output-folder')
 
-elif(str(style_path).endswith('.jpg'), str(style_path).endswith('.png'), str(style_path).endswith('.JPG'), str(style_path).endswith('.PNG')):
+if style_path.suffix in [".jpg", ".png", ".JPG", ".PNG"]:
 
     output_video_path = output_dir / '{:s}_stylized_{:s}{:s}'.format(
                 content_path.stem, style_path.stem, args.save_ext)
@@ -202,7 +198,3 @@ elif(str(style_path).endswith('.jpg'), str(style_path).endswith('.png'), str(sty
         pbar.update(1)
     
     content_video.release()
-else:
-    assert True, 'Please enter content and style video with proper video extenstion'
-
-
