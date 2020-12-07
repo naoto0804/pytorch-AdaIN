@@ -20,7 +20,7 @@ Please install requirements by `pip install -r requirements.txt`
 ## Usage
 
 ### Download models
-Download [vgg_normalized.pth](https://drive.google.com/open?id=108uza-dsmwvbW2zv-G73jtVcMU_2Nb7Y)/[decoder.pth](https://drive.google.com/open?id=1w9r1NoYnn7tql1VYG3qDUzkbIks24RBQ) and put them under `models/`.
+Download [vgg_normalized.pth](https://drive.google.com/file/d/1bMfhMMwPeXnYSQI6cDWElSZxOxc6aVyr/view?usp=sharing)/[decoder.pth](https://drive.google.com/file/d/1EpkBA2K2eYILDSyPTt0fztz59UjAIpZU/view?usp=sharing) and put them under `models/`.
 
 ### Test
 Use `--content` and `--style` to provide the respective path to the content and style image.
