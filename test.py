@@ -23,11 +23,29 @@ def test_transform(size, crop):
 
 
 def style_transfer(vgg, decoder, content, style, alpha=1.0,
-                   interpolation_weights=None):
+                   interpolation_weights=None, mask=None):
     assert (0.0 <= alpha <= 1.0)
     content_f = vgg(content)
     style_f = vgg(style)
-    if interpolation_weights:
+    if mask is not None:
+        assert style_f.size()[0] == 2 # expect two style images
+        style_f_fg = style_f[0].unsqueeze(0)
+        style_f_bg = style_f[1].unsqueeze(0)
+        _, C, H, W = content_f.size()
+        mask = test_transform((H, W), None)(mask)[0]
+        mask_view = mask.view(-1)
+        fgmask = torch.LongTensor((mask_view==1).nonzero(as_tuple=True)[0]).to(device)
+        bgmask = torch.LongTensor((mask_view==0).nonzero(as_tuple=True)[0]).to(device)
+        content_f_view = content_f.view(C, -1)
+        content_f_fg = content_f_view.index_select(1, fgmask).view(1, C, fgmask.nelement(), 1)
+        content_f_bg = content_f_view.index_select(1, bgmask).view(1, C, bgmask.nelement(), 1)
+        target_f_fg = adaptive_instance_normalization(content_f_fg, style_f_fg).clone().squeeze()
+        target_f_bg = adaptive_instance_normalization(content_f_bg, style_f_bg).squeeze()
+        feat = content_f_view.clone().zero_()
+        feat.index_copy_(1, fgmask, target_f_fg)
+        feat.index_copy_(1, bgmask, target_f_bg)
+        feat = feat.view_as(content_f)
+    elif interpolation_weights:
         _, C, H, W = content_f.size()
         feat = torch.FloatTensor(1, C, H, W).zero_().to(device)
         base_feat = adaptive_instance_normalization(content_f, style_f)
@@ -78,6 +96,8 @@ parser.add_argument('--alpha', type=float, default=1.0,
 parser.add_argument(
     '--style_interpolation_weights', type=str, default='',
     help='The weight for blending the style of multiple style images')
+parser.add_argument('--mask', type=str, default='',
+    help='Mask to apply spatial control, assume to be the path to a binary mask of the same size as content image')
 
 args = parser.parse_args()
 
@@ -102,15 +122,18 @@ if args.style:
     style_paths = args.style.split(',')
     if len(style_paths) == 1:
         style_paths = [Path(args.style)]
-    else:
-        do_interpolation = True
-        assert (args.style_interpolation_weights != ''), \
-            'Please specify interpolation weights'
-        weights = [int(i) for i in args.style_interpolation_weights.split(',')]
-        interpolation_weights = [w / sum(weights) for w in weights]
 else:
     style_dir = Path(args.style_dir)
     style_paths = [f for f in style_dir.glob('*')]
+
+if args.style_interpolation_weights:
+    do_interpolation = True
+    weights = [int(i) for i in args.style_interpolation_weights.split(',')]
+    interpolation_weights = [w / sum(weights) for w in weights]
+
+mask = None
+if args.mask:
+    mask = Image.open(str(args.mask))
 
 decoder = net.decoder
 vgg = net.vgg
@@ -129,7 +152,19 @@ content_tf = test_transform(args.content_size, args.crop)
 style_tf = test_transform(args.style_size, args.crop)
 
 for content_path in content_paths:
-    if do_interpolation:  # one content image, N style image
+    if mask:
+        style = torch.stack([style_tf(Image.open(str(p))) for p in style_paths])
+        content = content_tf(Image.open(str(content_path)))
+        style = style.to(device)
+        content = content.to(device).unsqueeze(0)
+        with torch.no_grad():
+            output = style_transfer(vgg, decoder, content, style,
+                                    args.alpha, mask=mask)
+        output = output.cpu()
+        output_name = output_dir / '{:s}_mask{:s}'.format(
+            content_path.stem, args.save_ext)
+        save_image(output, str(output_name))
+    elif do_interpolation:  # one content image, N style image
         style = torch.stack([style_tf(Image.open(str(p))) for p in style_paths])
         content = content_tf(Image.open(str(content_path))) \
             .unsqueeze(0).expand_as(style)
@@ -137,7 +172,7 @@ for content_path in content_paths:
         content = content.to(device)
         with torch.no_grad():
             output = style_transfer(vgg, decoder, content, style,
-                                    args.alpha, interpolation_weights)
+                                    args.alpha, interpolation_weights=interpolation_weights)
         output = output.cpu()
         output_name = output_dir / '{:s}_interpolation{:s}'.format(
             content_path.stem, args.save_ext)
