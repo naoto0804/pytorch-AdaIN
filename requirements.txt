@@ -1,5 +1,5 @@
 numpy==1.22.0
-Pillow==9.3.0
+Pillow==10.0.1
 pkg-resources==0.0.0
 protobuf==3.18.3
 six==1.12.0
