@@ -20,7 +20,7 @@ Please install requirements by `pip install -r requirements.txt`
 ## Usage
 
 ### Download models
-Download [decoder.pth](https://drive.google.com/file/d/1bMfhMMwPeXnYSQI6cDWElSZxOxc6aVyr/view?usp=sharing)/[vgg_normalized.pth](https://drive.google.com/file/d/1EpkBA2K2eYILDSyPTt0fztz59UjAIpZU/view?usp=sharing) and put them under `models/`.
+Download decoder.pth / vgg_normalized.pth from [release](https://github.com/naoto0804/pytorch-AdaIN/releases/tag/v0.0.0) and put them under `models/`.
 
 ### Test
 Use `--content` and `--style` to provide the respective path to the content and style image.
@@ -53,7 +53,8 @@ CUDA_VISIBLE_DEVICES=<gpu_id> python train.py --content_dir <content_dir> --styl
 
 For more details and parameters, please refer to --help option.
 
-I share the model trained by this code [here](https://drive.google.com/file/d/1YIBRdgGBoVllLhmz_N7PwfeP5V9Vz2Nr/view?usp=sharing)
+I share the model trained by this code as `iter_1000000.pth
+` at [release](https://github.com/naoto0804/pytorch-AdaIN/releases/tag/v0.0.0).
 
 ## References
 - [1]: X. Huang and S. Belongie. "Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization.", in ICCV, 2017.
